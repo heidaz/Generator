@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="page-id" content="{{ PAGE_ID }}">
     <title>{{COMPANY_NAME}} - {{TAGLINE}}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -684,19 +685,19 @@
     <!-- Social Media Bar with Brand Colors -->
     <div class="social-bar">
         {% if SHOW_INSTAGRAM %}
-        <a href="{{ INSTAGRAM_URL }}" target="_blank" class="instagram"><i class="fab fa-instagram"></i></a>
+        <a href="{{ INSTAGRAM_URL }}" target="_blank" class="instagram" data-track-link="instagram"><i class="fab fa-instagram"></i></a>
         {% endif %}
         {% if SHOW_FACEBOOK %}
-        <a href="{{ FACEBOOK_URL }}" target="_blank" class="facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="{{ FACEBOOK_URL }}" target="_blank" class="facebook" data-track-link="facebook"><i class="fab fa-facebook-f"></i></a>
         {% endif %}
         {% if SHOW_TIKTOK %}
-        <a href="{{ TIKTOK_URL }}" target="_blank" class="tiktok"><i class="fab fa-tiktok"></i></a>
+        <a href="{{ TIKTOK_URL }}" target="_blank" class="tiktok" data-track-link="tiktok"><i class="fab fa-tiktok"></i></a>
         {% endif %}
         {% if SHOW_YOUTUBE %}
-        <a href="{{ YOUTUBE_URL }}" target="_blank" class="youtube"><i class="fab fa-youtube"></i></a>
+        <a href="{{ YOUTUBE_URL }}" target="_blank" class="youtube" data-track-link="youtube"><i class="fab fa-youtube"></i></a>
         {% endif %}
         {% if SHOW_LINKEDIN %}
-        <a href="{{ LINKEDIN_URL }}" target="_blank" class="linkedin"><i class="fab fa-linkedin-in"></i></a>
+        <a href="{{ LINKEDIN_URL }}" target="_blank" class="linkedin" data-track-link="linkedin"><i class="fab fa-linkedin-in"></i></a>
         {% endif %}
     </div>
     <section id="hero">
@@ -704,7 +705,7 @@
         <div class="hero-content">
             <h2>{{HERO_HEADLINE}}</h2>
             <p>{{HERO_DESCRIPTION}}</p>
-            <a href="#" id="downloadVCard" class="futuristic-button">
+            <a href="#" id="downloadVCard" class="futuristic-button" data-track-link="vcard">
                 <i class="fas fa-user-plus"></i> Ajouter aux Contacts
             </a>
         </div>
@@ -765,21 +766,21 @@
             <div class="contact-info">
                 <div class="contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <a href="{{MAPS_URL}}" target="_blank">
+                    <a href="{{MAPS_URL}}" target="_blank" data-track-link="maps">
                         {{ADDRESS}}
                     </a>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-phone-alt"></i>
-                    <a href="tel:{{PHONE_NUMBER_RAW}}">{{PHONE_NUMBER_DISPLAY}}</a>
+                    <a href="tel:{{PHONE_NUMBER_RAW}}" data-track-link="phone">{{PHONE_NUMBER_DISPLAY}}</a>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-envelope"></i>
-                    <a href="mailto:{{EMAIL_ADDRESS}}" onclick="window.open('mailto:{{EMAIL_ADDRESS}}', '_blank');">{{EMAIL_ADDRESS}}</a>
+                    <a href="mailto:{{EMAIL_ADDRESS}}" data-track-link="email" onclick="window.open('mailto:{{EMAIL_ADDRESS}}', '_blank'); return false;">{{EMAIL_ADDRESS}}</a>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-globe"></i>
-                    <a href="{{WEBSITE_URL}}" target="_blank">{{WEBSITE_DISPLAY}}</a>
+                    <a href="{{WEBSITE_URL}}" target="_blank" data-track-link="website">{{WEBSITE_DISPLAY}}</a>
                 </div>
             </div>
         </div>
@@ -889,6 +890,55 @@ END:VCARD`;
                 });
             });
         });
+
+        // --- Click Tracking Script ---
+        const pageIdMeta = document.querySelector('meta[name="page-id"]');
+        const currentPageId = pageIdMeta ? pageIdMeta.content : null;
+
+        function trackClick(linkType) {
+            if (!currentPageId || !linkType) {
+                console.error('Missing pageId or linkType for tracking');
+                return;
+            }
+            const trackingUrl = '/track_click'; // The Flask endpoint
+            const data = { page_id: currentPageId, link_type: linkType };
+
+            // Use sendBeacon if available (more reliable for analytics)
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(trackingUrl, JSON.stringify(data));
+            } else {
+                // Fallback to fetch (might be less reliable if page unloads quickly)
+                fetch(trackingUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    keepalive: true // Attempt to keep request alive on page unload
+                }).catch(error => console.error('Tracking error:', error));
+            }
+        }
+
+        // Add listeners to trackable links
+        document.querySelectorAll('[data-track-link]').forEach(link => {
+            link.addEventListener('click', (event) => {
+                 // Special handling for mailto to prevent default tracking interference
+                 if (link.href.startsWith('mailto:')) {
+                     // We already handle mailto via onclick, just track here
+                     trackClick(link.dataset.trackLink);
+                 } else {
+                    // Track other links normally
+                    trackClick(link.dataset.trackLink);
+                    // No preventDefault needed, let the link navigate/action proceed
+                 }
+            });
+             // Special case for vCard download which uses preventDefault
+             if (link.id === 'downloadVCard') {
+                 link.addEventListener('click', () => trackClick(link.dataset.trackLink));
+             }
+        });
+        // --- End Click Tracking Script ---
+
     </script>
 </body>
 </html> 
