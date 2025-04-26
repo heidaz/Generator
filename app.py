@@ -7,6 +7,42 @@ import urllib.parse
 
 app = Flask(__name__)
 
+# Color Palettes
+COLOR_PALETTES = {
+    "default_dark": {
+        "primary": "#00bcd4", "secondary": "#2196f3", "accent": "#7c4dff",
+        "dark": "#1a1a2e", "light": "#f0f8ff", "description": "Default Dark (Cyan, Blue, Purple)"
+    },
+    "futuristic_neon": {
+        "primary": "#FF00FF", "secondary": "#00FFFF", "accent": "#FAFAFA", # Magenta, Cyan, White
+        "dark": "#1A001A", "light": "#E0E0E0", "description": "Futuristic Neon (Pink, Cyan, Dark)"
+    },
+    "forest_green": {
+        "primary": "#4CAF50", "secondary": "#8BC34A", "accent": "#FFC107", # Green, Light Green, Amber
+        "dark": "#303030", "light": "#F5F5F5", "description": "Forest Green (Greens, Amber)"
+    },
+    "sunset_orange": {
+        "primary": "#FF9800", "secondary": "#FF5722", "accent": "#607D8B", # Orange, Deep Orange, Blue Grey
+        "dark": "#212121", "light": "#FAFAFA", "description": "Sunset Orange (Oranges, Grey)"
+    },
+    "ocean_blue": {
+        "primary": "#03A9F4", "secondary": "#00BCD4", "accent": "#FFEB3B", # Light Blue, Cyan, Yellow
+        "dark": "#263238", "light": "#ECEFF1", "description": "Ocean Blue (Blues, Yellow)"
+    },
+    "warm_red": {
+        "primary": "#F44336", "secondary": "#FF5722", "accent": "#FFC107", # Red, Deep Orange, Amber
+        "dark": "#424242", "light": "#FBE9E7", "description": "Warm Red (Reds, Amber)"
+    },
+    "royal_purple": {
+        "primary": "#673AB7", "secondary": "#9C27B0", "accent": "#FFD700", # Deep Purple, Purple, Gold
+        "dark": "#311B92", "light": "#EDE7F6", "description": "Royal Purple (Purples, Gold)"
+    },
+    "grayscale": {
+        "primary": "#9E9E9E", "secondary": "#616161", "accent": "#FFFFFF", # Grey, Dark Grey, White
+        "dark": "#212121", "light": "#FAFAFA", "description": "Grayscale (Greys, Black/White)"
+    }
+}
+
 def get_youtube_embed_url(url):
     """Extracts YouTube video ID and returns embed URL."""
     if not url:
@@ -45,13 +81,41 @@ def generate_vcard_filename(contact_name, company_name):
 @app.route('/')
 def index():
     """Displays the form to input details."""
-    return render_template('index.html')
+    return render_template('index.html', palettes=COLOR_PALETTES)
 
 @app.route('/generate', methods=['POST'])
 def generate_html():
     """Generates the HTML file based on form input."""
     # --- Get Form Data --- 
     data = request.form
+    
+    # --- Determine Selected Palette Colors ---
+    selected_palette_name = data.get('color_palette', 'default_dark') 
+    selected_palette = {}
+    default_palette_colors = COLOR_PALETTES['default_dark'] # For fallback
+
+    if selected_palette_name == 'custom':
+        # Basic hex color validation regex (allows #RGB and #RRGGBB)
+        hex_pattern = re.compile(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')
+        
+        def get_custom_color(key):
+            custom_val = data.get(f'custom_{key}')
+            if custom_val and hex_pattern.match(custom_val):
+                return custom_val
+            return default_palette_colors[key] # Fallback to default dark
+
+        selected_palette = {
+            'primary': get_custom_color('primary'),
+            'secondary': get_custom_color('secondary'),
+            'accent': get_custom_color('accent'),
+            'dark': get_custom_color('dark'),
+            'light': get_custom_color('light'),
+        }
+    else:
+        # Use predefined palette (fallback to default if name is invalid for some reason)
+        selected_palette = COLOR_PALETTES.get(selected_palette_name, default_palette_colors)
+
+    # --- Get Remaining Form Data ---
     company_name = data.get('company_name', 'Your Company') # Add defaults just in case
     tagline = data.get('tagline', 'Your Tagline')
     contact_name = data.get('contact_name', 'Your Name')
@@ -142,6 +206,12 @@ def generate_html():
         "{{FEATURE2_ICON}}": feature2_icon,
         "{{FEATURE3_ICON}}": feature3_icon,
         "{{CURRENT_YEAR}}": str(current_year),
+        # Add Color Palette Variables
+        "{{COLOR_PRIMARY}}": selected_palette['primary'],
+        "{{COLOR_SECONDARY}}": selected_palette['secondary'],
+        "{{COLOR_ACCENT}}": selected_palette['accent'],
+        "{{COLOR_DARK}}": selected_palette['dark'],
+        "{{COLOR_LIGHT}}": selected_palette['light'],
     }
 
     # --- Read Template and Replace Placeholders ---
