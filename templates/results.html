@@ -77,7 +77,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Generated HTML</h1>
+        <h1>Generation Complete!</h1>
+        <p>Your file <strong>{{ filename }}</strong> has been generated.</p>
+        
+        <p>You can view your analytics dashboard here: <a href="{{ dashboard_url }}" target="_blank">{{ dashboard_url }}</a></p>
+        <small>(Bookmark this dashboard link!)</small>
+
         <textarea id="htmlOutput" readonly>{{ generated_html }}</textarea>
 
         <div class="button-container">
