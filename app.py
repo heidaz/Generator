@@ -1,11 +1,36 @@
-from flask import Flask, render_template, request, send_file, make_response
+from flask import Flask, render_template, request, send_file, make_response, jsonify
 import datetime
 import re
 import io
 import os
 import urllib.parse
+import uuid
+import json
 
 app = Flask(__name__)
+
+# --- Analytics Storage ---
+ANALYTICS_FILE = 'analytics_data.json'
+
+def load_analytics_data():
+    """Loads analytics data from the JSON file."""
+    try:
+        with open(ANALYTICS_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {} # Return empty dict if file not found or invalid
+
+def save_analytics_data(data):
+    """Saves analytics data to the JSON file."""
+    try:
+        with open(ANALYTICS_FILE, 'w') as f:
+            json.dump(data, f, indent=4)
+    except IOError as e:
+        print(f"Error saving analytics data: {e}") # Basic error logging
+
+# Initialize analytics file if it doesn't exist
+if not os.path.exists(ANALYTICS_FILE):
+    save_analytics_data({})
 
 # Color Palettes
 COLOR_PALETTES = {
@@ -179,9 +204,13 @@ def generate_html():
     full_contact_name = f"{contact_name} - {company_name}"
     vcard_filename = generate_vcard_filename(contact_name, company_name)
 
+    # --- Generate Unique ID and Dashboard URL ---
+    page_id = str(uuid.uuid4())
+    dashboard_url = f"/dashboard/{page_id}"
+
     # --- Prepare Context for Jinja Rendering ---
-    # Note: Keys no longer contain {{ }}
     template_context = {
+        "PAGE_ID": page_id,
         "COMPANY_NAME": company_name,
         "TAGLINE": tagline,
         "CONTACT_NAME": contact_name,
@@ -236,7 +265,10 @@ def generate_html():
 
     # --- Render Results Page --- 
     output_filename = "generated_page.html"
-    return render_template('results.html', generated_html=generated_content, filename=output_filename)
+    return render_template('results.html', 
+                           generated_html=generated_content, 
+                           filename=output_filename,
+                           dashboard_url=dashboard_url)
 
 # Add a route to handle the download from the results page
 @app.route('/download', methods=['POST'])
@@ -256,6 +288,37 @@ def download_html():
     response.headers["Content-Disposition"] = f"attachment; filename={filename}"
     return response
 
+# --- Analytics Routes ---
+
+@app.route('/track_click', methods=['POST'])
+def track_click():
+    data = request.get_json()
+    if not data or 'page_id' not in data or 'link_type' not in data:
+        return jsonify(success=False, error='Missing data'), 400
+
+    page_id = data['page_id']
+    link_type = data['link_type']
+
+    analytics_data = load_analytics_data()
+
+    # Ensure page_id exists
+    if page_id not in analytics_data:
+        analytics_data[page_id] = {}
+
+    # Increment count for the link_type
+    analytics_data[page_id][link_type] = analytics_data[page_id].get(link_type, 0) + 1
+
+    save_analytics_data(analytics_data)
+
+    return jsonify(success=True)
+
+@app.route('/dashboard/<page_id>')
+def dashboard(page_id):
+    analytics_data = load_analytics_data()
+    page_stats = analytics_data.get(page_id, {}) # Get stats or empty dict if page not tracked yet
+    # Add page_id itself to the context for display
+    return render_template('dashboard.html', page_id=page_id, stats=page_stats)
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False) 
+    port = int(os.environ.get('PORT', 5000)) # Get port from environment or default to 5000
+    app.run(host='0.0.0.0', port=port, debug=False) # Listen on 0.0.0.0 and disable debug for production 
