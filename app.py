@@ -134,17 +134,24 @@ def generate_html():
     youtube_handle = data.get('youtube_handle', '')
     linkedin_profile_name = data.get('linkedin_profile_name', '')
 
-    # Construct Social URLs
-    instagram_url = f"https://www.instagram.com/{instagram_username}/" if instagram_username else "#"
-    facebook_url = f"https://www.facebook.com/{facebook_username}/" if facebook_username else "#"
+    # Social Media Visibility Flags
+    show_instagram = data.get('show_instagram') == 'true' and bool(instagram_username) # Only show if checked AND username provided
+    show_facebook = data.get('show_facebook') == 'true' and bool(facebook_username)
+    show_tiktok = data.get('show_tiktok') == 'true' and bool(tiktok_username)
+    show_youtube = data.get('show_youtube') == 'true' and bool(youtube_handle)
+    show_linkedin = data.get('show_linkedin') == 'true' and bool(linkedin_profile_name)
+
+    # Construct Social URLs (only construct if needed, otherwise default to #)
+    instagram_url = f"https://www.instagram.com/{instagram_username}/" if show_instagram else "#"
+    facebook_url = f"https://www.facebook.com/{facebook_username}/" if show_facebook else "#"
     if tiktok_username and not tiktok_username.startswith('@'):
         tiktok_username = '@' + tiktok_username
-    tiktok_url = f"https://www.tiktok.com/{tiktok_username}" if tiktok_username else "#"
+    tiktok_url = f"https://www.tiktok.com/{tiktok_username}" if show_tiktok else "#"
     if youtube_handle and not youtube_handle.startswith('@'):
          # Ensure the handle starts with @ (form validation should also help)
          youtube_handle = '@' + youtube_handle
-    youtube_url = f"https://www.youtube.com/{youtube_handle}" if youtube_handle else "#"
-    linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile_name}/" if linkedin_profile_name else "#"
+    youtube_url = f"https://www.youtube.com/{youtube_handle}" if show_youtube else "#"
+    linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile_name}/" if show_linkedin else "#"
 
     # Content Sections
     hero_headline = data.get('hero_headline', 'Your Headline')
@@ -172,61 +179,60 @@ def generate_html():
     full_contact_name = f"{contact_name} - {company_name}"
     vcard_filename = generate_vcard_filename(contact_name, company_name)
 
-    replacements = {
-        "{{COMPANY_NAME}}": company_name,
-        "{{TAGLINE}}": tagline,
-        "{{CONTACT_NAME}}": contact_name,
-        "{{FULL_CONTACT_NAME}}": full_contact_name,
-        "{{PHONE_NUMBER_RAW}}": phone_raw,
-        "{{PHONE_NUMBER_DISPLAY}}": phone_display,
-        "{{EMAIL_ADDRESS}}": email,
-        "{{ADDRESS}}": address,
-        "{{MAPS_URL}}": maps_url,
-        "{{WEBSITE_URL}}": website_url,
-        "{{WEBSITE_DISPLAY}}": website_display,
-        "{{INSTAGRAM_URL}}": instagram_url,
-        "{{FACEBOOK_URL}}": facebook_url,
-        "{{TIKTOK_URL}}": tiktok_url,
-        "{{YOUTUBE_URL}}": youtube_url,
-        "{{LINKEDIN_URL}}": linkedin_url,
-        "{{HERO_HEADLINE}}": hero_headline,
-        "{{HERO_DESCRIPTION}}": hero_description,
-        "{{IMAGE_URL}}": image_url,
-        "{{IMAGE_ALT}}": image_alt,
-        "{{FEATURE1_TITLE}}": feature1_title,
-        "{{FEATURE1_DESCRIPTION}}": feature1_desc,
-        "{{FEATURE2_TITLE}}": feature2_title,
-        "{{FEATURE2_DESCRIPTION}}": feature2_desc,
-        "{{FEATURE3_TITLE}}": feature3_title,
-        "{{FEATURE3_DESCRIPTION}}": feature3_desc,
-        "{{YOUTUBE_VIDEO_EMBED_URL}}": youtube_video_embed_url,
-        "{{CONTACT_PROMPT}}": contact_prompt,
-        "{{VCARD_FILENAME}}": vcard_filename,
-        "{{FEATURE1_ICON}}": feature1_icon,
-        "{{FEATURE2_ICON}}": feature2_icon,
-        "{{FEATURE3_ICON}}": feature3_icon,
-        "{{CURRENT_YEAR}}": str(current_year),
-        # Add Color Palette Variables
-        "{{COLOR_PRIMARY}}": selected_palette['primary'],
-        "{{COLOR_SECONDARY}}": selected_palette['secondary'],
-        "{{COLOR_ACCENT}}": selected_palette['accent'],
-        "{{COLOR_DARK}}": selected_palette['dark'],
-        "{{COLOR_LIGHT}}": selected_palette['light'],
+    # --- Prepare Context for Jinja Rendering ---
+    # Note: Keys no longer contain {{ }}
+    template_context = {
+        "COMPANY_NAME": company_name,
+        "TAGLINE": tagline,
+        "CONTACT_NAME": contact_name,
+        "FULL_CONTACT_NAME": full_contact_name,
+        "PHONE_NUMBER_RAW": phone_raw,
+        "PHONE_NUMBER_DISPLAY": phone_display,
+        "EMAIL_ADDRESS": email,
+        "ADDRESS": address,
+        "MAPS_URL": maps_url,
+        "WEBSITE_URL": website_url,
+        "WEBSITE_DISPLAY": website_display,
+        "INSTAGRAM_URL": instagram_url,
+        "FACEBOOK_URL": facebook_url,
+        "TIKTOK_URL": tiktok_url,
+        "YOUTUBE_URL": youtube_url,
+        "LINKEDIN_URL": linkedin_url,
+        "HERO_HEADLINE": hero_headline,
+        "HERO_DESCRIPTION": hero_description,
+        "IMAGE_URL": image_url,
+        "IMAGE_ALT": image_alt,
+        "FEATURE1_TITLE": feature1_title,
+        "FEATURE1_DESCRIPTION": feature1_desc,
+        "FEATURE2_TITLE": feature2_title,
+        "FEATURE2_DESCRIPTION": feature2_desc,
+        "FEATURE3_TITLE": feature3_title,
+        "FEATURE3_DESCRIPTION": feature3_desc,
+        "YOUTUBE_VIDEO_EMBED_URL": youtube_video_embed_url,
+        "CONTACT_PROMPT": contact_prompt,
+        "VCARD_FILENAME": vcard_filename,
+        "FEATURE1_ICON": feature1_icon,
+        "FEATURE2_ICON": feature2_icon,
+        "FEATURE3_ICON": feature3_icon,
+        "CURRENT_YEAR": str(current_year),
+        "COLOR_PRIMARY": selected_palette['primary'],
+        "COLOR_SECONDARY": selected_palette['secondary'],
+        "COLOR_ACCENT": selected_palette['accent'],
+        "COLOR_DARK": selected_palette['dark'],
+        "COLOR_LIGHT": selected_palette['light'],
+        "SHOW_INSTAGRAM": show_instagram,
+        "SHOW_FACEBOOK": show_facebook,
+        "SHOW_TIKTOK": show_tiktok,
+        "SHOW_YOUTUBE": show_youtube,
+        "SHOW_LINKEDIN": show_linkedin,
     }
 
-    # --- Read Template and Replace Placeholders ---
+    # --- Render Template using Jinja ---
     try:
-        with open("template.html", "r", encoding="utf-8") as f:
-            template_content = f.read()
-    except FileNotFoundError:
-        return "Error: template.html not found. Please ensure it's in the same directory as app.py.", 500
+        generated_content = render_template('template.html', **template_context)
     except Exception as e:
-        return f"Error reading template.html: {e}", 500
-
-    generated_content = template_content
-    for placeholder, value in replacements.items():
-        # Ensure value is a string before replacing
-        generated_content = generated_content.replace(placeholder, str(value))
+        # Consider more specific error handling/logging
+        return f"Error rendering template.html: {e}", 500
 
     # --- Render Results Page --- 
     output_filename = "generated_page.html"
