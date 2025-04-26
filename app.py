@@ -65,6 +65,10 @@ def generate_html():
     feature3_title = data.get('feature3_title', 'Feature 3')
     feature3_desc = data.get('feature3_desc', 'Description 3')
     contact_prompt = data.get('contact_prompt', 'Get in touch!')
+    # Feature Icons (add defaults)
+    feature1_icon = data.get('feature1_icon', 'fas fa-check-circle')
+    feature2_icon = data.get('feature2_icon', 'fas fa-cog')
+    feature3_icon = data.get('feature3_icon', 'fas fa-lightbulb')
 
     # --- Prepare Placeholder Dictionary ---
     current_year = datetime.datetime.now().year
@@ -100,6 +104,9 @@ def generate_html():
         "{{FEATURE3_DESCRIPTION}}": feature3_desc,
         "{{CONTACT_PROMPT}}": contact_prompt,
         "{{VCARD_FILENAME}}": vcard_filename,
+        "{{FEATURE1_ICON}}": feature1_icon,
+        "{{FEATURE2_ICON}}": feature2_icon,
+        "{{FEATURE3_ICON}}": feature3_icon,
         "{{CURRENT_YEAR}}": str(current_year),
     }
 
