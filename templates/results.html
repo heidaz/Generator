@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated HTML</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: scroll;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        button, input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover, input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        button.copy-btn {
+             background-color: #28a745;
+        }
+        button.copy-btn:hover {
+             background-color: #218838;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generated HTML</h1>
+        <textarea id="htmlOutput" readonly>{{ generated_html }}</textarea>
+
+        <div class="button-container">
+            <button id="copyButton" class="copy-btn">Copy HTML</button>
+            
+            <form action="/download" method="post" style="display: inline;">
+                <input type="hidden" name="html_content" value="{{ generated_html }}">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <input type="submit" value="Download HTML">
+            </form>
+        </div>
+
+        <a href="/" class="back-link">&larr; Back to Generator Form</a>
+    </div>
+
+    <script>
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const textArea = document.getElementById('htmlOutput');
+            textArea.select(); // Select the text
+            textArea.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying text command was ' + msg);
+                alert('HTML copied to clipboard!');
+            } catch (err) {
+                console.error('Oops, unable to copy', err);
+                alert('Failed to copy HTML. Please copy manually.');
+            }
+
+            window.getSelection().removeAllRanges(); // Deselect
+        });
+    </script>
+</body>
+</html> 

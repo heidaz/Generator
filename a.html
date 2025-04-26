@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""
+Solana Mainnet Connection Check
+"""
+import requests
+import json
+import time
+
+# Mainnet RPC Endpoint
+RPC_URL = "https://api.mainnet-beta.solana.com"
+
+def check_solana_mainnet():
+    print("🚀 Connecting to Solana mainnet...")
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    # Make a simple getSlot request
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getSlot"
+    }
+    
+    try:
+        response = requests.post(RPC_URL, headers=headers, json=payload)
+        result = response.json()
+        
+        if "result" in result:
+            slot = result["result"]
+            print(f"✅ Connected to Solana mainnet, current slot: {slot}")
+            return slot
+        else:
+            print(f"❌ Error response: {result}")
+            return None
+    except Exception as e:
+        print(f"❌ Connection error: {str(e)}")
+        return None
+
+def monitor_recent_blocks(slot):
+    print(f"🔍 Monitoring Solana mainnet from slot {slot}")
+    
+    try:
+        while True:
+            # Get recent block
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            # Get a recent transaction
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getRecentBlockhash"
+            }
+            
+            try:
+                response = requests.post(RPC_URL, headers=headers, json=payload)
+                result = response.json()
+                
+                if "result" in result:
+                    blockhash = result["result"]["value"]["blockhash"]
+                    print(f"Recent blockhash: {blockhash}")
+                
+                    # Get slot info to see if we're advancing
+                    slot_payload = {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "getSlot"
+                    }
+                    
+                    slot_response = requests.post(RPC_URL, headers=headers, json=slot_payload)
+                    slot_result = slot_response.json()
+                    
+                    if "result" in slot_result:
+                        new_slot = slot_result["result"]
+                        print(f"Current slot: {new_slot}")
+                        
+                        if new_slot > slot:
+                            # Mainnet is progressing
+                            print(f"🔄 Mainnet advanced {new_slot - slot} slots")
+                            slot = new_slot
+                            
+            except Exception as e:
+                print(f"Error getting mainnet data: {str(e)}")
+            
+            print("Waiting 5 seconds...")
+            time.sleep(5)
+            
+    except KeyboardInterrupt:
+        print("\n🛑 Monitoring stopped by user")
+
+if __name__ == "__main__":
+    slot = check_solana_mainnet()
+    if slot:
+        monitor_recent_blocks(slot)
+    else:
+        print("Could not connect to Solana mainnet")

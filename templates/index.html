@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Page Generator</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e; /* Dark blue/purple */
+            --text-color: #f0f8ff; /* Alice blue - light */
+            --primary-accent: #00bcd4; /* Cyan */
+            --secondary-accent: #7c4dff; /* Purple */
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(0, 188, 212, 0.3);
+            --input-focus-border: var(--primary-accent);
+            --button-bg: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
+            --button-hover-shadow: 0 0 15px rgba(0, 188, 212, 0.6);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: rgba(10, 10, 25, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1, h2 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        h1 {
+             font-size: 2.5em;
+             background: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            margin-top: 35px;
+            border-bottom: 1px solid var(--input-border);
+            padding-bottom: 10px;
+            font-size: 1.8em;
+            color: var(--primary-accent);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            border-color: var(--input-focus-border);
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input[type="submit"] {
+            display: block;
+            width: 100%;
+            background: var(--button-bg);
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 30px;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+        }
+
+        input[type="submit"]:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--button-hover-shadow);
+        }
+
+        small {
+            color: var(--primary-accent);
+            opacity: 0.8;
+            display: block;
+            margin-top: -12px;
+            margin-bottom: 18px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML Page Generator</h1>
+        <form action="/generate" method="post">
+
+            <h2>Basic Information</h2>
+            <label for="company_name">Company Name:</label>
+            <input type="text" id="company_name" name="company_name" required><br>
+
+            <label for="tagline">Company Tagline:</label>
+            <input type="text" id="tagline" name="tagline" required><br>
+
+            <label for="contact_name">Contact Person's Full Name:</label>
+            <input type="text" id="contact_name" name="contact_name" required><br>
+
+            <label for="phone_raw">Phone Number (Include country code, e.g., +1234567890):</label>
+            <input type="text" id="phone_raw" name="phone_raw" required><br>
+
+            <label for="phone_display">Phone Number for Display (Optional, defaults to above):</label>
+            <input type="text" id="phone_display" name="phone_display" placeholder="e.g., +1 (234) 567-890"><br>
+
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="address">Full Address:</label>
+            <input type="text" id="address" name="address" required><br>
+
+            <label for="maps_url">Google Maps URL (Optional):</label>
+            <input type="url" id="maps_url" name="maps_url" placeholder="https://www.google.com/maps/place/..."><br>
+
+            <label for="website_url">Full Website URL:</label>
+            <input type="url" id="website_url" name="website_url" required><br>
+
+            <label for="website_display">Website for Display (Optional, defaults to domain):</label>
+            <input type="text" id="website_display" name="website_display" placeholder="e.g., example.com"><br>
+
+            <h2>Social Media Usernames/Handles</h2>
+            <label for="instagram_username">Instagram Username:</label>
+            <input type="text" id="instagram_username" name="instagram_username" required><br>
+
+            <label for="facebook_username">Facebook Profile/Page Name:</label>
+            <small>The part after facebook.com/</small>
+            <input type="text" id="facebook_username" name="facebook_username" required><br>
+
+            <label for="tiktok_username">TikTok Username:</label>
+            <small>Can include @</small>
+            <input type="text" id="tiktok_username" name="tiktok_username" required><br>
+
+            <label for="youtube_handle">YouTube Handle:</label>
+            <small>Must include @ (e.g., @YourChannel)</small>
+            <input type="text" id="youtube_handle" name="youtube_handle" required pattern="@.*" title="Must start with @"><br>
+
+            <label for="linkedin_profile_name">LinkedIn Profile Name:</label>
+            <small>The part after linkedin.com/in/</small>
+            <input type="text" id="linkedin_profile_name" name="linkedin_profile_name" required><br>
+
+            <h2>Content Sections</h2>
+            <label for="hero_headline">Hero Headline:</label>
+            <input type="text" id="hero_headline" name="hero_headline" required><br>
+
+            <label for="hero_description">Hero Description:</label>
+            <textarea id="hero_description" name="hero_description" required></textarea><br>
+
+            <label for="image_url">Image URL:</label>
+            <input type="url" id="image_url" name="image_url" required><br>
+
+            <label for="image_alt">Image Alt Text (Optional):</label>
+            <input type="text" id="image_alt" name="image_alt"><br>
+
+            <label for="feature1_title">Feature 1 Title:</label>
+            <input type="text" id="feature1_title" name="feature1_title" required><br>
+            <label for="feature1_desc">Feature 1 Description:</label>
+            <textarea id="feature1_desc" name="feature1_desc" required></textarea><br>
+
+            <label for="feature2_title">Feature 2 Title:</label>
+            <input type="text" id="feature2_title" name="feature2_title" required><br>
+            <label for="feature2_desc">Feature 2 Description:</label>
+            <textarea id="feature2_desc" name="feature2_desc" required></textarea><br>
+
+            <label for="feature3_title">Feature 3 Title:</label>
+            <input type="text" id="feature3_title" name="feature3_title" required><br>
+            <label for="feature3_desc">Feature 3 Description:</label>
+            <textarea id="feature3_desc" name="feature3_desc" required></textarea><br>
+
+            <label for="contact_prompt">Contact Section Prompt:</label>
+            <input type="text" id="contact_prompt" name="contact_prompt" required><br>
+
+            <input type="submit" value="Generate HTML Page">
+        </form>
+    </div>
+</body>
+</html> 
