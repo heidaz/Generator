@@ -3,8 +3,37 @@ import datetime
 import re
 import io
 import os
+import urllib.parse
 
 app = Flask(__name__)
+
+def get_youtube_embed_url(url):
+    """Extracts YouTube video ID and returns embed URL."""
+    if not url:
+        return ""
+    
+    video_id = None
+    try:
+        parsed_url = urllib.parse.urlparse(url)
+        if parsed_url.hostname == 'youtu.be':
+            video_id = parsed_url.path[1:] # Path is /VIDEO_ID
+        elif parsed_url.hostname in ('youtube.com', 'www.youtube.com'):
+            if parsed_url.path == '/watch':
+                query = urllib.parse.parse_qs(parsed_url.query)
+                video_id = query.get('v', [None])[0]
+            elif parsed_url.path.startswith('/embed/'):
+                video_id = parsed_url.path.split('/')[2]
+            elif parsed_url.path.startswith('/v/'):
+                video_id = parsed_url.path.split('/')[2]
+        
+        # Basic check for valid ID format (alphanumeric, -, _)
+        if video_id and re.match(r'^[A-Za-z0-9_\-]+$', video_id):
+            return f"https://www.youtube.com/embed/{video_id}"
+    except Exception:
+        # Ignore parsing errors
+        pass
+    
+    return "" # Return empty if no valid ID found
 
 def generate_vcard_filename(contact_name, company_name):
     """Generates a clean filename for the vCard."""
@@ -70,6 +99,10 @@ def generate_html():
     feature2_icon = data.get('feature2_icon', 'fas fa-cog')
     feature3_icon = data.get('feature3_icon', 'fas fa-lightbulb')
 
+    # Add youtube video url
+    youtube_video_url = data.get('youtube_video_url', '')
+    youtube_video_embed_url = get_youtube_embed_url(youtube_video_url)
+
     # --- Prepare Placeholder Dictionary ---
     current_year = datetime.datetime.now().year
     full_contact_name = f"{contact_name} - {company_name}"
@@ -102,6 +135,7 @@ def generate_html():
         "{{FEATURE2_DESCRIPTION}}": feature2_desc,
         "{{FEATURE3_TITLE}}": feature3_title,
         "{{FEATURE3_DESCRIPTION}}": feature3_desc,
+        "{{YOUTUBE_VIDEO_EMBED_URL}}": youtube_video_embed_url,
         "{{CONTACT_PROMPT}}": contact_prompt,
         "{{VCARD_FILENAME}}": vcard_filename,
         "{{FEATURE1_ICON}}": feature1_icon,
