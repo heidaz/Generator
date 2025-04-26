@@ -131,12 +131,97 @@
             margin-bottom: 18px;
             font-size: 0.9em;
         }
+
+        /* Color Palette Preview */
+        .palette-preview {
+            display: inline-flex;
+            gap: 5px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .palette-preview span {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .palette-option label {
+            display: inline-flex; /* Align label and preview */
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 10px; /* Add spacing between options */
+        }
+         .palette-option input[type="radio"] {
+            margin-right: 10px;
+            width: auto; /* Override default width */
+            margin-bottom: 0; /* Override default margin */
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>HTML Page Generator</h1>
         <form action="/generate" method="post">
+
+            <h2>Appearance</h2>
+            <label>Color Palette:</label>
+            <div class="palette-options">
+                <!-- Options will be added dynamically by Flask -->
+                {% for name, palette in palettes.items() %}
+                <div class="palette-option">
+                    <label>
+                        <input type="radio" name="color_palette" value="{{ name }}" {% if loop.first %}checked{% endif %}>
+                        {{ palette.description }}
+                        <span class="palette-preview">
+                            <span style="background-color: {{ palette.primary }};"></span>
+                            <span style="background-color: {{ palette.secondary }};"></span>
+                            <span style="background-color: {{ palette.accent }};"></span>
+                            <span style="background-color: {{ palette.dark }};"></span>
+                            <span style="background-color: {{ palette.light }};"></span>
+                        </span>
+                    </label>
+                </div>
+                {% endfor %}
+                <!-- Custom Palette Option -->
+                <div class="palette-option">
+                    <label>
+                        <input type="radio" name="color_palette" value="custom">
+                        Custom Palette
+                    </label>
+                </div>
+            </div>
+
+            <!-- Custom Color Inputs (Initially Hidden) -->
+            <div id="custom-color-inputs" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid var(--input-border);">
+                <h4>Define Custom Colors:</h4>
+                <div class="custom-color-row">
+                    <label for="custom_primary">Primary:</label>
+                    <input type="color" id="custom_primary_picker" name="custom_primary_picker" value="#00bcd4">
+                    <input type="text" id="custom_primary" name="custom_primary" placeholder="#00bcd4" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" title="Enter a valid hex code (#RRGGBB or #RGB)" style="width: 100px; display: inline-block; margin-left: 5px;">
+                </div>
+                 <div class="custom-color-row">
+                    <label for="custom_secondary">Secondary:</label>
+                    <input type="color" id="custom_secondary_picker" name="custom_secondary_picker" value="#2196f3">
+                    <input type="text" id="custom_secondary" name="custom_secondary" placeholder="#2196f3" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" title="Enter a valid hex code (#RRGGBB or #RGB)" style="width: 100px; display: inline-block; margin-left: 5px;">
+                </div>
+                 <div class="custom-color-row">
+                    <label for="custom_accent">Accent:</label>
+                    <input type="color" id="custom_accent_picker" name="custom_accent_picker" value="#7c4dff">
+                    <input type="text" id="custom_accent" name="custom_accent" placeholder="#7c4dff" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" title="Enter a valid hex code (#RRGGBB or #RGB)" style="width: 100px; display: inline-block; margin-left: 5px;">
+                </div>
+                 <div class="custom-color-row">
+                    <label for="custom_dark">Dark:</label>
+                    <input type="color" id="custom_dark_picker" name="custom_dark_picker" value="#1a1a2e">
+                    <input type="text" id="custom_dark" name="custom_dark" placeholder="#1a1a2e" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" title="Enter a valid hex code (#RRGGBB or #RGB)" style="width: 100px; display: inline-block; margin-left: 5px;">
+                </div>
+                 <div class="custom-color-row">
+                    <label for="custom_light">Light:</label>
+                    <input type="color" id="custom_light_picker" name="custom_light_picker" value="#f0f8ff">
+                    <input type="text" id="custom_light" name="custom_light" placeholder="#f0f8ff" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" title="Enter a valid hex code (#RRGGBB or #RGB)" style="width: 100px; display: inline-block; margin-left: 5px;">
+                </div>
+            </div>
 
             <h2>Basic Information</h2>
             <label for="company_name">Company Name:</label>
@@ -236,5 +321,50 @@
             <input type="submit" value="Generate HTML Page">
         </form>
     </div>
+
+    <script>
+        // Script to handle custom color input visibility and sync color/text inputs
+        const paletteRadios = document.querySelectorAll('input[name="color_palette"]');
+        const customColorDiv = document.getElementById('custom-color-inputs');
+
+        const customColorPickers = document.querySelectorAll('#custom-color-inputs input[type="color"]');
+        const customColorTexts = document.querySelectorAll('#custom-color-inputs input[type="text"]');
+
+        function toggleCustomColors() {
+            if (document.querySelector('input[name="color_palette"][value="custom"]:checked')) {
+                customColorDiv.style.display = 'block';
+            } else {
+                customColorDiv.style.display = 'none';
+            }
+        }
+
+        // Add event listeners to all palette radio buttons
+        paletteRadios.forEach(radio => {
+            radio.addEventListener('change', toggleCustomColors);
+        });
+
+        // Sync color picker and text input for each custom color
+        customColorPickers.forEach(picker => {
+            const textInput = document.getElementById(picker.id.replace('_picker', ''));
+            if (textInput) {
+                // Update text input when color picker changes
+                picker.addEventListener('input', (event) => {
+                    textInput.value = event.target.value;
+                });
+                // Update color picker when text input changes (and is valid)
+                 textInput.addEventListener('input', (event) => {
+                     if (event.target.validity.valid) { // Check if hex pattern is valid
+                        picker.value = event.target.value;
+                     }
+                 });
+                 // Initialize text input value from picker's default value
+                 textInput.value = picker.value;
+            }
+        });
+
+        // Initial check in case 'custom' is somehow pre-selected (e.g., browser back button)
+        toggleCustomColors();
+    </script>
+
 </body>
 </html> 
