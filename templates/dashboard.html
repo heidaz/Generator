@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #eee;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        li strong {
+            text-transform: capitalize;
+        }
+        .page-id {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #777;
+            word-break: break-all;
+        }
+        .no-stats {
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Analytics Dashboard</h1>
+        <h2>Stats for Page ID: <span class="page-id">{{ page_id }}</span></h2>
+
+        {% if stats %}
+            <ul>
+                {% for link_type, count in stats.items() %}
+                    <li><strong>{{ link_type }} Clicks:</strong> {{ count }}</li>
+                {% else %}
+                    <li class="no-stats">No clicks tracked yet for this page.</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-stats">No stats found for this Page ID. Has it been visited yet?</p>
+        {% endif %}
+        
+        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">
+            <a href="/">Generate another page</a>
+        </p>
+    </div>
+</body>
+</html> 
